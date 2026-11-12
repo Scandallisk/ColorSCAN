@@ -1,4 +1,6 @@
-# v0.3.0 validation
+# v0.3.1 validation
+
+The v0.3.1 follow-up passed all checks below plus actual audio-preference code tests: fresh default 30%, saved 0% and 68% retained, out-of-range volume clamped. The supplied private 266.667-second stereo WAV was converted to a 192 kbps MP3 and fully decoded successfully. That file is excluded from public source and packages. Live deployment findings are recorded separately after rollout.
 
 November 12, 2026. Tests used local synthetic API responses, saved games and scores. No production scores were submitted and this release has not been deployed to WordPress.
 

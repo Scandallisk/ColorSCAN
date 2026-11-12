@@ -2,14 +2,14 @@
 /**
  * Plugin Name: ColorSCAN
  * Description: Color Sudoku with a shared, no-hints arcade leaderboard. Use [colorscan] once per page.
- * Version: 0.3.0
+ * Version: 0.3.1
  * Author: Kilobytes Development
  * Requires PHP: 7.4
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class ColorSCAN {
-    const VERSION = '0.3.0';
+    const VERSION = '0.3.1';
     static function table() { global $wpdb; return $wpdb->prefix . 'colorscan_runs'; }
     static function activate() {
         global $wpdb;
@@ -37,7 +37,7 @@ final class ColorSCAN {
         // Keep submitted scores. Remove abandoned/assisted sessions after 7 days.
         $wpdb->query($wpdb->prepare("DELETE FROM $table WHERE initials = '' AND started_at < %d", time() - 7 * DAY_IN_SECONDS));
     }
-    static function config() { return array('apiBase' => rest_url('colorscan/v1/'), 'musicAvailable' => is_file(__DIR__ . '/assets/audio/background.mp3'), 'musicUrl' => plugin_dir_url(__FILE__) . 'assets/audio/background.mp3', 'sfxUrl' => plugin_dir_url(__FILE__) . 'assets/audio/marble-place.mp3'); }
+    static function config() { return array('apiBase' => rest_url('colorscan/v1/'), 'musicAvailable' => is_file(__DIR__ . '/assets/audio/background.mp3'), 'musicUrl' => add_query_arg('ver', self::VERSION, plugin_dir_url(__FILE__) . 'assets/audio/background.mp3'), 'sfxUrl' => plugin_dir_url(__FILE__) . 'assets/audio/marble-place.mp3'); }
     static function head() {
         echo '<script id="colorscan-config">window.ColorSCANConfig=' . wp_json_encode(self::config(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ';</script>';
     }

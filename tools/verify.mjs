@@ -19,7 +19,7 @@ for (const name of ['Divi-Code', 'Standalone']) {
 assert.equal((html.match(/data-action="fullscreen"/g) || []).length, 1);
 assert.equal((html.match(/id="colorscan"/g) || []).length, 1);
 const php = await read('source/colorscan/colorscan.php');
-assert.ok(php.includes('Version: 0.3.0') && php.includes("const VERSION = '0.3.0'"));
+assert.ok(php.includes('Version: 0.3.1') && php.includes("const VERSION = '0.3.1'"));
 console.log('PASS: JS syntax, both generated editions, unique root/fullscreen, version alignment');
 
 const peers = (i, j) => (i / 9 | 0) === (j / 9 | 0) || i % 9 === j % 9 || ((i / 27 | 0) === (j / 27 | 0) && (i % 9 / 3 | 0) === (j % 9 / 3 | 0));
@@ -80,4 +80,13 @@ now = 900; reduced = true; context.state.notes[2] = [1];
 vm.runInContext('animateFeedback()', context);
 assert.equal(calls.length, 3, 'reduced motion must create no animations');
 console.log('PASS: event motion, repeat render timing, idle rendering and reduced motion');
+const audioPreferences = js.slice(js.indexOf('const audioKey='), js.indexOf('const audioConfig='));
+for (const [saved, expected] of [[null, .30], [{volume:0}, 0], [{volume:.68}, .68], [{volume:2}, 1]]) {
+  const audioContext = vm.createContext({localStorage:{getItem:() => saved ? JSON.stringify(saved) : null}});
+  vm.runInContext(audioPreferences, audioContext);
+  assert.equal(vm.runInContext('audioPrefs.volume', audioContext), expected);
+}
+assert.ok(html.includes('>30%</output>'));
+assert.ok(php.includes("add_query_arg('ver', self::VERSION"));
+console.log('PASS: 30% fresh default, saved/zero volume retained, clamping and versioned music URL');
 console.log('LIMIT: does not exercise WordPress/PHP runtime or real-device audio.');

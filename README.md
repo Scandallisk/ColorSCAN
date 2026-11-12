@@ -2,7 +2,7 @@
 
 Classic Sudoku, played in color. A browser puzzle game by **KiloBytes.dev**.
 
-**v0.3.0** introduces a responsive, board-first interface and restrained event animations. Play on the [ColorSCAN website](https://kilobytes.dev/colorscan/); the website may run an earlier release until separately updated.
+**v0.3.1** builds on the responsive, board-first interface and event animations introduced in v0.3.0. It sets the fresh music-volume default to **30%**, preserves existing volume preferences, and versions the optional music URL when the plugin changes. Play on the [ColorSCAN website](https://kilobytes.dev/colorscan/).
 
 ## Play
 

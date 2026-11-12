@@ -1,5 +1,12 @@
 # Changes
 
+## 0.3.1 — Music update
+
+- Fresh/default music volume is 30%; saved personal volume choices, including mute, are preserved.
+- Optional music URL includes the plugin version, so the website can replace a track without continuing to use an older cached file.
+- New site music was supplied privately by the project owner. No background track is included in this repository or public downloads.
+- Added actual-code checks for the fresh default, saved zero/nonzero volumes and clamping.
+
 ## 0.3.0 — A brighter brain break
 
 - Board-first layout with a 600px desktop board and adjacent 3 × 3 color dock; full-width phone board and 5 + 4 color palette.
