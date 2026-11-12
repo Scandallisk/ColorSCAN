@@ -1,0 +1,8 @@
+# Optional private music is never public release content.
+**/background.mp3
+**/.DS_Store
+node_modules/
+.env*
+*.log
+work/
+releases/
