@@ -2,13 +2,15 @@
 
 Classic Sudoku, played in color. A browser puzzle game by **KiloBytes.dev**.
 
-**v0.3.1** builds on the responsive, board-first interface and event animations introduced in v0.3.0. It sets the fresh music-volume default to **30%**, preserves existing volume preferences, and versions the optional music URL when the plugin changes. Play on the [ColorSCAN website](https://kilobytes.dev/colorscan/).
+**v0.3.2** adds mobile Undo/Erase controls directly below the board and press-and-hold marble movement. It retains the **30%** fresh music-volume default and saved personal preferences. Play on the [ColorSCAN website](https://kilobytes.dev/colorscan/).
 
 ## Play
 
 Use all nine colors once in every row, column and 3 × 3 box. Starting marbles have a small dot and cannot be changed. Select a space, then choose a color. Double-tap a color to lock it for repeated placements; tap the locked color to unlock. Counts mean **placed / 9**.
 
 Use Notes to track candidates, Undo to reverse a move, and Check to compare placed colors with the solution. A Hint permanently excludes that run from the shared leaderboard, including after undo/reload. Keyboard: arrows move, 1–9 place, Delete/Backspace/0 erase. Optional numbers provide a consistent color key.
+
+Hold a marble you placed for about 0.4 seconds, then drag it to an empty editable space and release. The marble follows your finger and a valid destination is outlined. Dropping outside, on a starting piece, or on an occupied space cancels the move. Escape, pointer interruption, a second touch, and resizing also cancel safely. One Undo restores the complete move and its notes. Starting pieces cannot be dragged. You can still tap and use the palette normally. On phones/touch layouts, Undo and Erase sit immediately below the board; messages appear below the other controls.
 
 ## Install on WordPress
 
@@ -37,6 +39,7 @@ Requires **Node.js 18+** for development tools; there are no npm dependencies or
 ```sh
 node tools/build.mjs
 node tools/verify.mjs
+node tools/verify-moves.mjs
 ```
 
 Edit the canonical files in `source/colorscan/assets/`: `game.html`, `game.js`, `style.css`. Build regenerates both HTML editions deterministically. Verify checks JS syntax, generated consistency, all 36 puzzles and motion lifecycle/reduced-motion behavior. It does not run WordPress or PHP.

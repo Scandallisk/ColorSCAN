@@ -1,5 +1,14 @@
 # Changes
 
+## 0.3.2 — Moves within reach
+
+- Original Undo and Erase buttons move directly beneath the board at phone widths or on coarse-pointer/touch layouts. Desktop controls retain their dock location; no duplicate action buttons.
+- Mobile feedback text moves below the other controls.
+- Hold a player-placed marble for 380ms to lift, then drag to an empty editable cell. Starting pieces and occupied destinations are protected; canceled/invalid drops leave the board untouched.
+- Valid drops commit one atomic move, update peer notes, preserve hint eligibility, save, and run the existing completion check. One Undo restores both cells and notes.
+- Handles quick taps, pre-hold drift, pointer cancellation/capture loss, second touches, Escape, page hiding and resizing without saving a partial move.
+- Added 57 actual-code move/gesture/control assertions plus local browser DOM integration using simulated touch pointer events. Physical-device touch validation remains separate.
+
 ## 0.3.1 — Music update
 
 - Fresh/default music volume is 30%; saved personal volume choices, including mute, are preserved.

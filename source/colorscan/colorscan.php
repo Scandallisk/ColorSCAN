@@ -2,14 +2,14 @@
 /**
  * Plugin Name: ColorSCAN
  * Description: Color Sudoku with a shared, no-hints arcade leaderboard. Use [colorscan] once per page.
- * Version: 0.3.1
+ * Version: 0.3.2
  * Author: Kilobytes Development
  * Requires PHP: 7.4
  */
 if (!defined('ABSPATH')) { exit; }
 
 final class ColorSCAN {
-    const VERSION = '0.3.1';
+    const VERSION = '0.3.2';
     static function table() { global $wpdb; return $wpdb->prefix . 'colorscan_runs'; }
     static function activate() {
         global $wpdb;

@@ -85,7 +85,7 @@ function animateCheck() {
     { duration: 300, easing: 'ease-out' });
 }
 
-function render(){const b=state.board;$('.cs-board').innerHTML=b.map((v,i)=>{let conflict=v&&b.some((w,j)=>j!==i&&w===v&&peers(i,j));let cl=['cs-cell',state.givens[i]?'cs-fixed':'',selected===i?'cs-selected':selected>=0&&peers(selected,i)?'cs-peer':'',selected>=0&&v&&b[selected]===v?'cs-same':'',(showConflicts&&conflict)||checked.has(i)?'cs-conflict':''].join(' ');return `<button class="${cl}" data-cell="${i}" tabindex="${i===(selected<0?0:selected)?0:-1}" aria-label="Row ${Math.floor(i/9)+1}, column ${i%9+1}, ${v?colors[v-1][0]+(state.givens[i]?', starting piece':''):'empty'+(state.notes[i].length?', notes '+state.notes[i].map(n=>colors[n-1][0]).join(', '):'')}" aria-pressed="${selected===i}">${v?dot(v):state.notes[i].length?'<span class="cs-notes-grid">'+Array.from({length:9},(_,k)=>state.notes[i].includes(k+1)?dot(k+1,true):'<span></span>').join('')+'</span>':''}</button>`}).join('');$('.cs-palette').innerHTML=colors.map(([name,c,t],i)=>`<button class="cs-color" aria-pressed="${lockedColor===i+1}" data-color="${i+1}" aria-label="Place ${name}, ${b.filter(v=>v===i+1).length} of 9 used">${dot(i+1)}<span class="cs-count">${b.filter(v=>v===i+1).length}/9</span></button>`).join('');$('.cs-progress').textContent=b.filter(Boolean).length+'/81';$('.cs-level').textContent=state.level.toUpperCase()+' / '+(state.complete?'NICELY DONE':'TAKE YOUR TIME');$('[data-action=undo]').disabled=!history.length||state.complete;$('[data-action=notes]').setAttribute('aria-pressed',noteMode);$('.cs-difficulty').value=state.level;$('.cs-labels').checked=showLabels;$('.cs-conflicts').checked=showConflicts;renderTime();animateFeedback()}
+function render(){const b=state.board;$('.cs-board').innerHTML=b.map((v,i)=>{let conflict=v&&b.some((w,j)=>j!==i&&w===v&&peers(i,j));let cl=['cs-cell',v&&!state.givens[i]&&!state.complete?'cs-movable':'',state.givens[i]?'cs-fixed':'',selected===i?'cs-selected':selected>=0&&peers(selected,i)?'cs-peer':'',selected>=0&&v&&b[selected]===v?'cs-same':'',(showConflicts&&conflict)||checked.has(i)?'cs-conflict':''].join(' ');return `<button class="${cl}" data-cell="${i}" tabindex="${i===(selected<0?0:selected)?0:-1}" aria-label="Row ${Math.floor(i/9)+1}, column ${i%9+1}, ${v?colors[v-1][0]+(state.givens[i]?', starting piece':''):'empty'+(state.notes[i].length?', notes '+state.notes[i].map(n=>colors[n-1][0]).join(', '):'')}" aria-pressed="${selected===i}">${v?dot(v):state.notes[i].length?'<span class="cs-notes-grid">'+Array.from({length:9},(_,k)=>state.notes[i].includes(k+1)?dot(k+1,true):'<span></span>').join('')+'</span>':''}</button>`}).join('');$('.cs-palette').innerHTML=colors.map(([name,c,t],i)=>`<button class="cs-color" aria-pressed="${lockedColor===i+1}" data-color="${i+1}" aria-label="Place ${name}, ${b.filter(v=>v===i+1).length} of 9 used">${dot(i+1)}<span class="cs-count">${b.filter(v=>v===i+1).length}/9</span></button>`).join('');$('.cs-progress').textContent=b.filter(Boolean).length+'/81';$('.cs-level').textContent=state.level.toUpperCase()+' / '+(state.complete?'NICELY DONE':'TAKE YOUR TIME');$('[data-action=undo]').disabled=!history.length||state.complete;$('[data-action=notes]').setAttribute('aria-pressed',noteMode);$('.cs-difficulty').value=state.level;$('.cs-labels').checked=showLabels;$('.cs-conflicts').checked=showConflicts;renderTime();animateFeedback()}
 function renderTime(){$('.cs-time').textContent=String(Math.floor(state.seconds/60)).padStart(2,'0')+':'+String(state.seconds%60).padStart(2,'0')}
 function place(n){if(busy||!state.run)return;if(selected<0){say('Choose a space on the board first.');return}if(state.givens[selected]){say('Starting pieces are locked. Choose an empty space.');return}if(state.complete)return;snapshot();checked.clear();if(noteMode&&n){if(state.board[selected]){history.pop();say('Erase this piece before adding notes.');return}let a=state.notes[selected];state.notes[selected]=a.includes(n)?a.filter(v=>v!==n):[...a,n].sort()}else{const changed=state.board[selected]!==n;state.board[selected]=n;state.notes[selected]=[];if(n&&changed)marbleSound();if(n)state.notes.forEach((a,j)=>{if(peers(selected,j))state.notes[j]=a.filter(v=>v!==n)})}say(noteMode?'Notes help you track possible colors.':'Keep going. One space at a time.');finish();save();render()}
 const formatTime=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
@@ -102,6 +102,161 @@ async function loadScores(){const request=++scoreRequest,select=$('.cs-rank-leve
 
 function palette(n){if(busy||!state.run||state.complete)return;const now=Date.now();if(lockedColor===n){lockedColor=0;lastPalette=null;clearTimeout(paletteTimer);save();render();return}if(lastPalette&&lastPalette.n===n&&now-lastPalette.at<350){clearTimeout(paletteTimer);lastPalette=null;lockedColor=n;noteMode=false;save();render();say(colors[n-1][0]+' locked. Tap spaces to place it.');return}clearTimeout(paletteTimer);if(lastPalette)place(lastPalette.n);lastPalette={n,at:now};paletteTimer=setTimeout(()=>{lastPalette=null;lockedColor=0;place(n);save();render()},350)}
 async function useHint(){if(busy||!state.run||state.complete)return;let i=selected>=0&&!state.givens[selected]&&state.board[selected]!==state.solution[selected]?selected:state.board.findIndex((v,i)=>v!==state.solution[i]);if(i<0)return;const current=state;busy=true;try{if(state.run)await api('hint',runData());if(state!==current)return;snapshot();feedbackKind='hint';selected=i;state.hints++;state.board[i]=state.solution[i];state.notes[i]=[];marbleSound();state.notes.forEach((a,j)=>{if(peers(i,j))state.notes[j]=a.filter(v=>v!==state.solution[i])});checked.clear();say('Hint placed. This puzzle is no longer eligible for the leaderboard, even after undo.');finish();save();render()}catch(e){say(e.message+' No hint was revealed.')}finally{busy=false;render()}}
+// Marble movement is one atomic, undoable edit. Dragging never changes the
+// saved board until a valid drop is accepted.
+function moveMarble(from, to) {
+  if (busy || !state.run || state.complete || !Number.isInteger(from) || !Number.isInteger(to) ||
+      from < 0 || from > 80 || to < 0 || to > 80 || from === to ||
+      state.givens[from] || state.givens[to] || !state.board[from] || state.board[to]) return false;
+  snapshot();
+  const value = state.board[from];
+  state.board[from] = 0;
+  state.board[to] = value;
+  state.notes[from] = [];
+  state.notes[to] = [];
+  state.notes.forEach((notes, i) => {
+    if (peers(to, i)) state.notes[i] = notes.filter(n => n !== value);
+  });
+  selected = to;
+  checked.clear();
+  marbleSound();
+  say('Marble moved. Undo brings it back.');
+  finish();
+  save();
+  render();
+  if (!state.complete) $(`[data-cell="${to}"]`)?.focus({preventScroll:true});
+  return true;
+}
+
+// Pointer gestures: normal taps remain immediate; hold a placed marble to lift.
+const dragBoard = $('.cs-board');
+let marbleDrag = null, suppressBoardClickUntil = 0;
+function clearMarbleDrag(message = '') {
+  const drag = marbleDrag;
+  if (!drag) return;
+  marbleDrag = null;
+  clearTimeout(drag.timer);
+  drag.ghost?.remove();
+  drag.source.classList.remove('cs-drag-source');
+  drag.target?.classList.remove('cs-drop-target');
+  root.classList.remove('cs-dragging');
+  if (drag.active) {
+    suppressBoardClickUntil = performance.now() + 500;
+    try { if (dragBoard.hasPointerCapture(drag.pointer)) dragBoard.releasePointerCapture(drag.pointer); } catch (_) {}
+    if (message) say(message);
+  }
+}
+function dragTargetAt(x, y) {
+  const cell = document.elementFromPoint(x, y)?.closest('[data-cell]');
+  return cell && dragBoard.contains(cell) ? cell : null;
+}
+function updateMarbleDrag(x, y) {
+  const drag = marbleDrag;
+  if (!drag?.active) return;
+  drag.ghost.style.transform = `translate3d(${x - drag.size / 2}px,${y - drag.size / 2}px,0)`;
+  const cell = dragTargetAt(x, y), index = cell ? Number(cell.dataset.cell) : -1;
+  const valid = index >= 0 && index !== drag.from && !state.givens[index] && !state.board[index];
+  drag.target?.classList.remove('cs-drop-target');
+  drag.target = valid ? cell : null;
+  drag.target?.classList.add('cs-drop-target');
+}
+dragBoard.addEventListener('pointerdown', event => {
+  if (marbleDrag) { clearMarbleDrag('Move canceled. Marble kept in place.'); return; }
+  const cell = event.target.closest('[data-cell]');
+  if (!cell || event.button !== 0 || event.isPrimary === false || busy || !state.run || state.complete) return;
+  const from = Number(cell.dataset.cell);
+  if (state.givens[from] || !state.board[from]) return;
+  clearTimeout(paletteTimer);
+  lastPalette = null;
+  const drag = {from, value:state.board[from], game:state, source:cell, pointer:event.pointerId,
+    x:event.clientX, y:event.clientY, active:false, target:null, ghost:null};
+  marbleDrag = drag;
+  drag.timer = setTimeout(() => {
+    if (marbleDrag !== drag || state !== drag.game || busy || state.complete || state.board[from] !== drag.value) {
+      clearMarbleDrag(); return;
+    }
+    drag.active = true;
+    drag.size = Math.max(22, Math.min(52, cell.getBoundingClientRect().width * .7));
+    drag.ghost = document.createElement('div');
+    drag.ghost.className = 'cs-drag-ghost';
+    drag.ghost.setAttribute('aria-hidden', 'true');
+    drag.ghost.innerHTML = dot(drag.value);
+    drag.ghost.style.width = drag.ghost.style.height = drag.size + 'px';
+    root.appendChild(drag.ghost);
+    cell.classList.add('cs-drag-source');
+    root.classList.add('cs-dragging');
+    try { dragBoard.setPointerCapture(drag.pointer); } catch (_) {}
+    say('Marble picked up. Drop it on an empty space, or release elsewhere to cancel.');
+    updateMarbleDrag(drag.x, drag.y);
+  }, 380);
+});
+dragBoard.addEventListener('pointermove', event => {
+  const drag = marbleDrag;
+  if (!drag || event.pointerId !== drag.pointer) return;
+  if (!drag.active) {
+    if (Math.hypot(event.clientX - drag.x, event.clientY - drag.y) > 10) clearMarbleDrag();
+    return;
+  }
+  event.preventDefault();
+  updateMarbleDrag(event.clientX, event.clientY);
+}, {passive:false});
+dragBoard.addEventListener('pointerup', event => {
+  const drag = marbleDrag;
+  if (!drag || event.pointerId !== drag.pointer) return;
+  if (!drag.active) { clearMarbleDrag(); return; }
+  event.preventDefault();
+  const target = dragTargetAt(event.clientX, event.clientY);
+  const to = target ? Number(target.dataset.cell) : -1;
+  const sameGame = state === drag.game && state.board[drag.from] === drag.value;
+  clearMarbleDrag();
+  if (!sameGame || !moveMarble(drag.from, to)) say('Move canceled. Marble kept in place.');
+});
+dragBoard.addEventListener('pointercancel', () => clearMarbleDrag('Move canceled. Marble kept in place.'));
+dragBoard.addEventListener('lostpointercapture', () => clearMarbleDrag('Move canceled. Marble kept in place.'));
+dragBoard.addEventListener('pointerleave', () => { if (marbleDrag && !marbleDrag.active) clearMarbleDrag(); });
+document.addEventListener('pointerup', event => {
+  if (marbleDrag && event.pointerId === marbleDrag.pointer) clearMarbleDrag('Move canceled. Marble kept in place.');
+});
+document.addEventListener('pointerdown', event => {
+  if (marbleDrag && event.pointerId !== marbleDrag.pointer) clearMarbleDrag('Move canceled. Marble kept in place.');
+});
+root.addEventListener('pointerdown', () => { suppressBoardClickUntil = 0; }, true);
+root.addEventListener('click', event => {
+  if (performance.now() < suppressBoardClickUntil && event.detail) {
+    event.preventDefault(); event.stopImmediatePropagation(); suppressBoardClickUntil = 0;
+  }
+}, true);
+dragBoard.addEventListener('contextmenu', event => {
+  if (marbleDrag || event.target.closest('.cs-movable')) event.preventDefault();
+});
+root.addEventListener('keydown', event => {
+  if (!marbleDrag) return;
+  clearMarbleDrag('Move canceled. Marble kept in place.');
+  if (event.key === 'Escape') { event.preventDefault(); event.stopImmediatePropagation(); }
+}, true);
+window.addEventListener('blur', () => clearMarbleDrag());
+window.addEventListener('resize', () => clearMarbleDrag());
+window.addEventListener('pagehide', () => clearMarbleDrag());
+document.addEventListener('visibilitychange', () => { if (document.hidden) clearMarbleDrag(); });
+
+// Move the original controls, rather than duplicate action buttons/state.
+const mobileLayout = window.matchMedia('(max-width:800px), (pointer:coarse)');
+function positionMoveControls() {
+  clearMarbleDrag();
+  const undo = $('[data-action="undo"]'), erase = $('[data-action="erase"]');
+  const focused = document.activeElement;
+  if (mobileLayout.matches) {
+    $('.cs-quick-actions').append(undo, erase);
+    $('.cs-feedback').append($('.cs-status'));
+  } else {
+    $('.cs-tools').prepend(undo, erase);
+    $('.cs-play').append($('.cs-status'));
+  }
+  if (focused === undo || focused === erase) focused.focus({preventScroll:true});
+}
+mobileLayout.addEventListener('change', positionMoveControls);
+positionMoveControls();
+
 root.addEventListener('click',e=>{let c=e.target.closest('[data-cell]');if(c){clearTimeout(paletteTimer);lastPalette=null;selected=+c.dataset.cell;if(lockedColor&&!state.givens[selected]&&!state.board[selected])place(lockedColor);render();$(`[data-cell="${selected}"]`).focus({preventScroll:true});return}let p=e.target.closest('[data-color]');if(p){palette(+p.dataset.color);return}const action=e.target.closest('[data-action]')?.dataset.action;if(action==='erase')place(0);if(action==='notes'){noteMode=!noteMode;render();say(noteMode?'Notes on. Choose a space and add possible colors.':'Notes off. Place colors normally.')}if(action==='undo'&&history.length&&!state.complete&&!busy){feedbackKind='undo';Object.assign(state,history.pop());checked.clear();save();render();say('Last move undone.')}if(action==='check'){checked=new Set(state.board.flatMap((v,i)=>v&&v!==state.solution[i]?[i]:[]));render();animateCheck();say(checked.size?checked.size+' placed piece'+(checked.size===1?' needs':'s need')+' another look.':'All placed colors match the solution so far.')}if(action==='hint')useHint();if(action==='refresh-scores')loadScores();if(action==='close-win')$('.cs-win').close();if(action==='view-win'&&state.complete)showWin();if(action==='rules'){let b=e.target.closest('button'),expanded=b.getAttribute('aria-expanded')==='true';b.setAttribute('aria-expanded',!expanded);$('.cs-help').hidden=expanded;say(expanded?'Select a space, then choose a color.':'Use each color once per row, column, and 3 × 3 box. Starting pieces (marked with a small dot) are locked. Notes track possibilities. Palette counts show how many of each color are on the board.')}});
 $('.cs-new').onclick=()=>{if(state.board.some((v,i)=>v!==state.givens[i])&&!state.complete)$('.cs-dialog').showModal();else newGame()};$('[data-dialog=cancel]').onclick=()=>{$('.cs-dialog').close();$('.cs-difficulty').value=state.level};$('[data-dialog=confirm]').onclick=()=>{$('.cs-dialog').close();newGame()};$('.cs-dialog').addEventListener('cancel',()=>{$('.cs-difficulty').value=state.level});$('.cs-labels').onchange=e=>{showLabels=e.target.checked;save();render()};$('.cs-conflicts').onchange=e=>{showConflicts=e.target.checked;save();render()};
 root.addEventListener('keydown',e=>{if(!e.target.closest('.cs-board'))return;let i=selected<0?0:selected;const step={ArrowLeft:-1,ArrowRight:1,ArrowUp:-9,ArrowDown:9}[e.key];if(step){e.preventDefault();selected=(i+step+81)%81;render();$(`[data-cell="${selected}"]`).focus({preventScroll:true})}else if(/^[1-9]$/.test(e.key)){e.preventDefault();place(+e.key);$(`[data-cell="${selected}"]`)?.focus({preventScroll:true})}else if(['Delete','Backspace','0'].includes(e.key)){e.preventDefault();place(0);$(`[data-cell="${selected}"]`)?.focus({preventScroll:true})}});

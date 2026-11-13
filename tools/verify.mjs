@@ -19,7 +19,7 @@ for (const name of ['Divi-Code', 'Standalone']) {
 assert.equal((html.match(/data-action="fullscreen"/g) || []).length, 1);
 assert.equal((html.match(/id="colorscan"/g) || []).length, 1);
 const php = await read('source/colorscan/colorscan.php');
-assert.ok(php.includes('Version: 0.3.1') && php.includes("const VERSION = '0.3.1'"));
+assert.ok(php.includes('Version: 0.3.2') && php.includes("const VERSION = '0.3.2'"));
 console.log('PASS: JS syntax, both generated editions, unique root/fullscreen, version alignment');
 
 const peers = (i, j) => (i / 9 | 0) === (j / 9 | 0) || i % 9 === j % 9 || ((i / 27 | 0) === (j / 27 | 0) && (i % 9 / 3 | 0) === (j % 9 / 3 | 0));

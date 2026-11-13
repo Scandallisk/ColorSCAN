@@ -148,3 +148,17 @@
  @keyframes cs-dialog-in{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
 }
 @media(prefers-reduced-motion:reduce){#colorscan .cs-confetti{display:none}#colorscan .cs-meter-fill{transition:none}}
+
+/* Mobile move controls and press-and-hold marble movement. */
+#colorscan .cs-quick-actions{display:none}
+#colorscan .cs-cell.cs-movable{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab}
+#colorscan.cs-dragging .cs-board{cursor:grabbing}
+#colorscan .cs-drag-source .cs-dot{opacity:.2}
+#colorscan .cs-cell.cs-drop-target{background:var(--soft);box-shadow:inset 0 0 0 3px var(--ink)}
+#colorscan .cs-drag-ghost{position:fixed;top:0;left:0;z-index:2147483646;pointer-events:none;will-change:transform;filter:drop-shadow(0 5px 5px #0003)}
+#colorscan .cs-drag-ghost .cs-dot{width:100%;height:100%}
+@media(max-width:800px), (pointer:coarse){
+ #colorscan .cs-quick-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+ #colorscan .cs-quick-actions .cs-tool{min-height:52px}
+ #colorscan .cs-feedback .cs-status{margin:12px 0}
+}
